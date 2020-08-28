@@ -55,12 +55,16 @@ function restrict(req, res, next){
       next();
    } else {
       req.session.error = 'Access denied!';
-      res.redirect('/login');
+      res.render('login',{
+         error: true
+      })
    }
 }
 
 app.get('/', function(req, res){
-   res.render('login');
+   res.render('login',{
+      error:false
+   });
 })
 
 app.get('/restricted', restrict, function(req, res){
@@ -83,7 +87,7 @@ app.post('/login', bodyParser, function(req, res){
             req.session.success = 'Authenticated as ' + user.name
                 + ' click to <a href="/logout">logout</a>. '
                 + ' You may now access <a href="/restricted">/restricted</a>.';
-            res.redirect('back');
+            res.redirect('/restricted');
          })
       }else{
          req.session.error = 'Authentication failed, please check your '
