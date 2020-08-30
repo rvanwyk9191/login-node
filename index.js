@@ -44,39 +44,21 @@ hash({ password: 'foobar' }, function (err, pass, salt, hash){
 })
 
 let opts = {
-   password: "Secunda@3090!"
+   password: ""
 };
 
-hash(opts, function(err, pass, salt, hash) {
-   opts.salt = salt;
-   hash(opts, function (err, pass, salt, hash2) {
-      assert.deepStrictEqual(hash2, hash);
-
-      // password mismatch
-      opts.password = "Secunda@3090!";
-      hash(opts, function (err, pass, salt, hash2) {
-         assert.notDeepStrictEqual(hash2, hash);
-         console.log("OK");
-      });
-   })
-});
-
 function authenticate(name, pass, fn){
-   if(!module.parent) console.log('authentication %s:%s', name, pass);
-   let user = dbconnection.getuser(name, pass);
-   user.then((result) => {
-      if(typeof result === 'undefined') return fn(new Error('Either the user entered does not exist, or you have entered the wrong password'));
-      if(name == result.username) return fn(null, result.username);
-      fn(new Error('invalid password'));
-   })
-   /*var user = users[name];
-   if(!user) return fn(new Error('cannot find user'));
-   hash({ password: pass, salt: user.salt}, function(err, pass, salt, hash) {
-      if(err) return fn(err);
-      if(hash === user.hash) return fn(null, user);
-      fn(new Error('invalid password'));
-   })*/
+   (async () => {
+     const user = await dbconnection.getuser(name);
+     if(typeof user === 'undefined') return fn("Username or password is incorrect");
+     hash({ password: pass, salt: user.SALT}, function(err, pass, salt, hash) {
+         if(err) return fn(err);
+         if(hash === user.PASSWORD) return fn(null, user);
+         return fn("Username or password is incorrect");
+     })})();
 }
+
+
 
 function restrict(req, res, next){
    if(req.session.user){
@@ -108,7 +90,6 @@ app.get('/logout', function(req, res){
 app.post('/login', bodyParser, function(req, res){
    authenticate(req.body.username, req.body.password, function(err, user){
       if(user){
-         console.log("User passed");
          req.session.regenerate(function(){
             req.session.user = user;
             req.session.success = 'Authenticated as ' + user.name
@@ -126,7 +107,16 @@ app.post('/login', bodyParser, function(req, res){
 })
 
 app.get('/register', function(req, res){
-   res.redirect('/register');
+   res.render('register',{err:false});
+})
+
+app.post('/registeruser', function(req, res){
+   if(req.body.password != req.body.confirmpassword) res.render('register',{err:'Passwords dont match'});
+   opts.password = req.body.password;
+   hash(opts, function(err, pass, salt, hash){
+      res.render('register', {err: dbconnection.adduser(req.body.username, hash, salt)});
+   });
+   
 })
 
 if(!module.parent){

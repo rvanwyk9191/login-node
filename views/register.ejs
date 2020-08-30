@@ -1,3 +1,21 @@
 <%- include('head'); %>
-
+	<h1>Registration</h1>
+	<div><p id="error"></p></div>
+	<form method="post" action="/registeruser">
+	  <p>
+	    <label>Username:</label>
+	    <input type="text" name="username">
+	  </p>
+	  <p>
+	    <label>Password:</label>
+	    <input type="text" name="password">
+	  </p>
+	  <p>
+	    <label>Confirm Password:</label>
+	    <input type="text" name="confirmpassword">
+	  </p>
+	  <p>
+	    <input type="submit" value="Register">
+	  </p>
+	</form>
 <%- include('foot');%>
