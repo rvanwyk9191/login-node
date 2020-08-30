@@ -16,5 +16,12 @@
             color: green;
         }
     </style>
+    <script>
+        function loadError() {
+            <% if(err)
+            {JSON.stringify(err)}else{err=""}%>
+            document.getElementById("error").innerHTML = '<%- err %>';
+        }
+    </script>
 </head>
-<body>
+<body onload="loadError()">

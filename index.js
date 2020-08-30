@@ -8,6 +8,10 @@ const session = require('express-session')
 
 const bodyParser = require('body-parser').json();
 
+const dbconnection = require('./services/connections')
+
+var assert = require("assert");
+
 app.set('view engine', 'ejs')
 app.set('views', path.join(__dirname, 'views'))
 
@@ -39,15 +43,39 @@ hash({ password: 'foobar' }, function (err, pass, salt, hash){
    users.tj.hash = hash;
 })
 
+let opts = {
+   password: "Secunda@3090!"
+};
+
+hash(opts, function(err, pass, salt, hash) {
+   opts.salt = salt;
+   hash(opts, function (err, pass, salt, hash2) {
+      assert.deepStrictEqual(hash2, hash);
+
+      // password mismatch
+      opts.password = "Secunda@3090!";
+      hash(opts, function (err, pass, salt, hash2) {
+         assert.notDeepStrictEqual(hash2, hash);
+         console.log("OK");
+      });
+   })
+});
+
 function authenticate(name, pass, fn){
    if(!module.parent) console.log('authentication %s:%s', name, pass);
-   var user = users[name];
+   let user = dbconnection.getuser(name, pass);
+   user.then((result) => {
+      if(typeof result === 'undefined') return fn(new Error('Either the user entered does not exist, or you have entered the wrong password'));
+      if(name == result.username) return fn(null, result.username);
+      fn(new Error('invalid password'));
+   })
+   /*var user = users[name];
    if(!user) return fn(new Error('cannot find user'));
    hash({ password: pass, salt: user.salt}, function(err, pass, salt, hash) {
       if(err) return fn(err);
       if(hash === user.hash) return fn(null, user);
       fn(new Error('invalid password'));
-   })
+   })*/
 }
 
 function restrict(req, res, next){
@@ -56,14 +84,14 @@ function restrict(req, res, next){
    } else {
       req.session.error = 'Access denied!';
       res.render('login',{
-         error: true
+         err: true
       })
    }
 }
 
 app.get('/', function(req, res){
    res.render('login',{
-      error:false
+      err:false
    });
 })
 
@@ -78,7 +106,6 @@ app.get('/logout', function(req, res){
 })
 
 app.post('/login', bodyParser, function(req, res){
-   console.log(req.body)
    authenticate(req.body.username, req.body.password, function(err, user){
       if(user){
          console.log("User passed");
@@ -93,9 +120,13 @@ app.post('/login', bodyParser, function(req, res){
          req.session.error = 'Authentication failed, please check your '
              + ' username and password.'
              + ' (use "tj" and "foobar")';
-         res.redirect('/login');
+         res.render('login', {err: err});
       }
    })
+})
+
+app.get('/register', function(req, res){
+   res.redirect('/register');
 })
 
 if(!module.parent){

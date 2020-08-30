@@ -1,10 +1,7 @@
 <%- include('head'); %>
-
 <h1>Login</h1>
-<%  if (typeof error !== undefined && error) { %>
-  <div><b>User is not logged in. Please log in before proceeding.</b></div>
-  <br/>
-<% } %>
+<div><p id="error"></p></div>
+<br/>
 Try accessing <a href="/restricted">/restricted</a>, then authenticate with "tj" and "foobar".
 <form method="post" action="/login">
   <p>
