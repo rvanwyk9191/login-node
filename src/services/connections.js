@@ -3,7 +3,7 @@ const mysql = require('mysql')
 const con = mysql.createConnection({
     host: 'eportfolio.cs64bjeijp5s.us-east-1.rds.amazonaws.com',
     user: 'admin',
-    password: '',
+    password: 'Secunda3090!',
     database: 'USER_MANAGEMENT'
 });
 

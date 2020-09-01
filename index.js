@@ -8,12 +8,12 @@ const session = require('express-session')
 
 const bodyParser = require('body-parser').json();
 
-const dbconnection = require('./services/connections')
+const dbconnection = require('./src/services/connections')
 
 var assert = require("assert");
 
 app.set('view engine', 'ejs')
-app.set('views', path.join(__dirname, 'views'))
+app.set('views', path.join(__dirname, 'src/views'))
 
 app.use(express.urlencoded({ extended: false }))
 app.use(session({
@@ -33,21 +33,11 @@ app.use(function(req, res, next){
    next();
  })
 
-const users = {
-   tj: { name: 'tj' }
-}
-
-hash({ password: 'foobar' }, function (err, pass, salt, hash){
-   if(err) throw err;
-   users.tj.salt = salt;
-   users.tj.hash = hash;
-})
-
 let opts = {
    password: ""
 };
 
-function authenticate(name, pass, fn){
+/**function authenticate(name, pass, fn){
    (async () => {
      const user = await dbconnection.getuser(name);
      if(typeof user === 'undefined') return fn("Username or password is incorrect");
@@ -56,7 +46,7 @@ function authenticate(name, pass, fn){
          if(hash === user.PASSWORD) return fn(null, user);
          return fn("Username or password is incorrect");
      })})();
-}
+}**/
 
 
 
@@ -87,7 +77,7 @@ app.get('/logout', function(req, res){
    })
 })
 
-app.post('/login', bodyParser, function(req, res){
+/**app.post('/login', bodyParser, function(req, res){
    authenticate(req.body.username, req.body.password, function(err, user){
       if(user){
          req.session.regenerate(function(){
@@ -117,9 +107,11 @@ app.post('/registeruser', function(req, res){
       res.render('register', {err: dbconnection.adduser(req.body.username, hash, salt)});
    });
    
-})
+})**/
 
 if(!module.parent){
    app.listen(port);
    console.log('Express started on port 3000');
 }
+
+require('./src/api-routes/authentication')(app)
