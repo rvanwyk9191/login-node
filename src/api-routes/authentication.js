@@ -18,6 +18,17 @@ function authenticate(name, pass, fn){
         })})();
 }
 
+function restrict(req, res, next){
+   if(req.session.user){
+      next();
+   } else {
+      req.session.error = 'Access denied!';
+      res.render('login',{
+         err: "Please login"
+      })
+   }
+}
+
 module.exports = function(app) {
     app.post('/login', bodyParser, function(req, res){
         authenticate(req.body.username, req.body.password, function(err, user){
@@ -49,5 +60,15 @@ module.exports = function(app) {
             res.render('register', {err: dbconnection.adduser(req.body.username, hash, salt)});
         });
 
+    })
+
+    app.get('/restricted', restrict, function(req, res){
+        res.send('Wahoo! restricted area, click to <a href="/logout">logout</a>');
+    })
+
+    app.get('/logout', function(req, res){
+       req.session.destroy(function(){
+          res.redirect('/');
+       })
     })
 }
