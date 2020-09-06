@@ -1,11 +1,21 @@
 const mysql = require('mysql')
+const hash = require('pbkdf2-password')()
+const propertiesReader = require('properties-reader');
+const properties = propertiesReader('../config.properties');
+
+const dbPassword = function(){
+    let salt = properties.get('salt');
+    let encryptedPassword = properties.get('password');
+    return properties.get('unencryptedPassword');
+}
 
 const con = mysql.createConnection({
     host: 'eportfolio.cs64bjeijp5s.us-east-1.rds.amazonaws.com',
     user: 'admin',
-    password: '',
+    password: dbPassword(),
     database: 'USER_MANAGEMENT'
 });
+
 
 const dbconnection = function(){
     con.connect(function(err){
