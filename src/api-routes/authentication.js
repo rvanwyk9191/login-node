@@ -38,13 +38,15 @@ module.exports = function(app) {
                     req.session.success = 'Authenticated as ' + user.name
                         + ' click to <a href="/logout">logout</a>. '
                         + ' You may now access <a href="/restricted">/restricted</a>.';
-                    res.redirect('/restricted');
+                    //res.redirect('/restricted');
+                    res.send({'result':'success'});
                 })
             }else{
                 req.session.error = 'Authentication failed, please check your '
                     + ' username and password.'
                     + ' (use "tj" and "foobar")';
-                res.render('login', {err: err});
+                //res.render('login', {err: err});
+                res.send({'result':'fail'});
             }
         })
     })
@@ -57,7 +59,7 @@ module.exports = function(app) {
         if(req.body.password != req.body.confirmpassword) res.render('register',{err:'Passwords dont match'});
         opts.password = req.body.password;
         hash(opts, function(err, pass, salt, hash){
-            res.render('register', {err: dbconnection.adduser(req.body.username, hash, salt)});
+            res.send({err: dbconnection.adduser(req.body.username, hash, salt)});
         });
 
     })
@@ -66,9 +68,13 @@ module.exports = function(app) {
         res.send('Wahoo! restricted area, click to <a href="/logout">logout</a>');
     })
 
-    app.get('/logout', function(req, res){
+    app.post('/session', function(req, res){
+        res.send({'sessionStatus':req.session.user?'active':'inactive'});
+    })
+
+    app.post('/logout', function(req, res){
        req.session.destroy(function(){
-          res.redirect('/');
+          res.send({'status':'success'})
        })
     })
 }
