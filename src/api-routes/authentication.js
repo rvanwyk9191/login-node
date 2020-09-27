@@ -65,7 +65,7 @@ module.exports = function(app) {
     })
 
     app.get('/restricted', restrict, function(req, res){
-        res.send('Wahoo! restricted area, click to <a href="/logout">logout</a>');
+        res.render('restricted',{err:false})
     })
 
     app.post('/session', function(req, res){
